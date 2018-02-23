@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Notification;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -18,11 +19,16 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.BiPredicate;
+import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.internal.operators.observable.ObservableFromCallable;
 import io.reactivex.internal.schedulers.SingleScheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -57,8 +63,17 @@ public class MainActivity extends AppCompatActivity {
 //        initReduce();
 //        initCollect();
 //        initStartWidth();
-        initCount();
-
+//        initCount();
+//        initDelay();
+//        initDo();
+//        initErrorReturn();
+//        initOnErrorResumeNext();
+//        onExceptionOnNext();
+//        initRetry();
+//        initRetryUntil();
+//        initRetryWhen();
+//        initRepeat();
+        initRepeatWhen();
     }
 
     private void initRxjava() {
@@ -715,21 +730,21 @@ public class MainActivity extends AppCompatActivity {
                 }).subscribe(new Consumer<Long>() {
             @Override
             public void accept(Long aLong) throws Exception {
-                Log.e(TAG, "合并的结果是： "+aLong);
+                Log.e(TAG, "合并的结果是： " + aLong);
             }
         });
     }
 
-    private void initReduce(){
-        Observable.just(1,2,3,4)
+    private void initReduce() {
+        Observable.just(1, 2, 3, 4)
                 .reduce((integer, integer2) -> {
-                    Log.e(TAG, "本次计算的数据是： "+integer +" 乘 "+ integer2);
-                    return integer*integer2;
-                }).subscribe(integer -> Log.e(TAG, "最终计算的结果是： "+integer));
+                    Log.e(TAG, "本次计算的数据是： " + integer + " 乘 " + integer2);
+                    return integer * integer2;
+                }).subscribe(integer -> Log.e(TAG, "最终计算的结果是： " + integer));
     }
 
-    private void initCollect(){
-        Observable.just(1,2,3,4,5)
+    private void initCollect() {
+        Observable.just(1, 2, 3, 4, 5)
                 .collect(new Callable<ArrayList<Integer>>() {
                     @Override
                     public ArrayList<Integer> call() throws Exception {
@@ -743,16 +758,16 @@ public class MainActivity extends AppCompatActivity {
                 }).subscribe(new Consumer<ArrayList<Integer>>() {
             @Override
             public void accept(ArrayList<Integer> integers) throws Exception {
-                Log.e(TAG, "本次发送的数据是： "+integers);
+                Log.e(TAG, "本次发送的数据是： " + integers);
             }
         });
     }
 
 
-    private void initStartWidth(){
-        Observable.just(4,5,6)
+    private void initStartWidth() {
+        Observable.just(4, 5, 6)
                 .startWith(0)
-                .startWithArray(1,2,3)
+                .startWithArray(1, 2, 3)
                 .subscribe(new Observer<Integer>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -761,7 +776,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(Integer integer) {
-                        Log.d(TAG, "接收到了事件"+ integer  );
+                        Log.d(TAG, "接收到了事件" + integer);
                     }
 
                     @Override
@@ -776,8 +791,8 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
-        Observable.just(4,5,6)
-                .startWith(Observable.just(1,2,3))
+        Observable.just(4, 5, 6)
+                .startWith(Observable.just(1, 2, 3))
                 .subscribe(new Observer<Integer>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -786,7 +801,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(Integer integer) {
-                        Log.d(TAG, "2接收到了事件"+ integer  );
+                        Log.d(TAG, "2接收到了事件" + integer);
                     }
 
                     @Override
@@ -801,14 +816,466 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void initCount(){
-        Observable.just(1,2,3,4)
+    private void initCount() {
+        Observable.just(1, 2, 3, 4)
                 .count()
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        Log.e(TAG, "发送的事件数量 =  "+aLong);
+                        Log.e(TAG, "发送的事件数量 =  " + aLong);
                     }
+                });
+    }
+
+    private void initDelay() {
+        Observable.just(1, 2, 3, 4)
+                .delay(3, TimeUnit.SECONDS)
+                .subscribe(new Observer<Integer>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "开始订阅");
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        Log.d(TAG, "接收到了事件" + integer);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "对Error事件作出响应");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "对Complete事件作出响应");
+                    }
+                });
+    }
+
+
+    private void initDo() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+                emitter.onError(new Throwable("发生错误"));
+            }
+        }).doOnEach(new Consumer<Notification<Integer>>() {
+            @Override
+            public void accept(Notification<Integer> integerNotification) throws Exception {
+                Log.d(TAG, "doOnEach: " + integerNotification.getValue());
+            }
+        }).doOnNext(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "doOnNext: " + integer);
+            }
+        }).doAfterNext(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "doAfterNext: " + integer);
+            }
+        }).doOnComplete(new Action() {
+            @Override
+            public void run() throws Exception {
+                Log.d(TAG, "doOnComplete: ");
+            }
+        }).doOnError(new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                Log.d(TAG, "doOnError: " + throwable.getMessage());
+            }
+        }).doOnSubscribe(new Consumer<Disposable>() {
+            @Override
+            public void accept(Disposable disposable) throws Exception {
+                Log.e(TAG, "doOnSubscribe: ");
+            }
+        }).doAfterTerminate(new Action() {
+            @Override
+            public void run() throws Exception {
+                Log.e(TAG, "doAfterTerminate: ");
+            }
+        }).doFinally(new Action() {
+            @Override
+            public void run() throws Exception {
+                Log.e(TAG, "doFinally: ");
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.d(TAG, "开始订阅");
+            }
+
+            @Override
+            public void onNext(Integer integer) {
+                Log.d(TAG, "接收到了事件" + integer);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+        });
+    }
+
+
+    private void initErrorReturn() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onError(new Throwable("发生错误了"));
+            }
+        }).onErrorReturn(new Function<Throwable, Integer>() {
+            @Override
+            public Integer apply(Throwable throwable) throws Exception {
+                return 555;
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+
+    }
+
+    private void initOnErrorResumeNext() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onError(new Throwable("发生错误了"));
+            }
+        }).onErrorResumeNext(new Function<Throwable, ObservableSource<? extends Integer>>() {
+            @Override
+            public ObservableSource<? extends Integer> apply(Throwable throwable) throws Exception {
+                Log.e(TAG, "在onErrorResumeNext处理了错误: " + throwable.toString());
+                return Observable.just(11, 22);
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+    }
+
+    private void onExceptionOnNext() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onError(new Exception("发生错误了"));
+            }
+        }).onExceptionResumeNext(new Observable<Integer>() {
+            @Override
+            protected void subscribeActual(Observer<? super Integer> observer) {
+                observer.onNext(11);
+                observer.onNext(22);
+                observer.onComplete();
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+    }
+
+    private void initRetry() {
+
+        Observer observer1 = new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        };
+
+        Observable<Integer> observable = Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onError(new Exception("发生了错误"));
+                emitter.onNext(3);
+            }
+        });
+
+
+//        observable.retry()
+//                .subscribe(observer1);
+
+//        observable.retry(3).subscribe(observer1);
+//        observable.retry(new Predicate<Throwable>() {
+//            @Override
+//            public boolean test(Throwable throwable) throws Exception {
+//                Log.e(TAG, "retry错误: "+throwable.toString());
+//                return false;
+//            }
+//        }).subscribe(observer1);
+
+//        observable.retry(new BiPredicate<Integer, Throwable>() {
+//            @Override
+//            public boolean test(Integer integer, Throwable throwable) throws Exception {
+//                // 捕获异常
+//                Log.e(TAG, "异常错误 =  "+throwable.toString());
+//
+//                // 获取当前重试次数
+//                Log.e(TAG, "当前重试次数 =  "+integer);
+//
+//                //返回false = 不重新重新发送数据 & 调用观察者的onError结束
+//                //返回true = 重新发送请求（若持续遇到错误，就持续重新发送）
+//
+//                return true;
+//            }
+//        }).subscribe(observer1);
+
+
+        observable.retry(3, new Predicate<Throwable>() {
+            @Override
+            public boolean test(Throwable throwable) throws Exception {
+                return false;
+            }
+        }).subscribe(observer1);
+    }
+
+    private void initRetryUntil() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onError(new Exception("发生错误了"));
+                e.onNext(3);
+            }
+        }).retryUntil(new BooleanSupplier() {
+            @Override
+            public boolean getAsBoolean() throws Exception {
+                return true;
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+    }
+
+    private void initRetryWhen() {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onError(new Exception("发生错误了"));
+                e.onNext(3);
+            }
+        }).retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
+            @Override
+            public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
+                return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(Throwable throwable) throws Exception {
+//                        return Observable.error(new Throwable("retryWhen终止啦"));
+
+                        return Observable.just(100);
+                    }
+                });
+            }
+        }).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应" + e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+    }
+
+    private void initRepeat() {
+        Observable.just(1, 2, 3, 4)
+                .repeat(3).subscribe(new Observer<Integer>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Integer value) {
+                Log.d(TAG, "接收到了事件" + value);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "对Error事件作出响应" + e.getMessage());
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "对Complete事件作出响应");
+            }
+
+        });
+    }
+
+    private void initRepeatWhen() {
+        Observable.just(1, 2, 4)
+                .repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+                    @Override
+                    // 在Function函数中，必须对输入的 Observable<Object>进行处理，这里我们使用的是flatMap操作符接收上游的数据
+                    public ObservableSource<?> apply(@NonNull Observable<Object> objectObservable) throws Exception {
+                        // 将原始 Observable 停止发送事件的标识（Complete（） /  Error（））转换成1个 Object 类型数据传递给1个新被观察者（Observable）
+                        // 以此决定是否重新订阅 & 发送原来的 Observable
+                        // 此处有2种情况：
+                        // 1. 若新被观察者（Observable）返回1个Complete（） /  Error（）事件，则不重新订阅 & 发送原来的 Observable
+                        // 2. 若新被观察者（Observable）返回其余事件，则重新订阅 & 发送原来的 Observable
+                        return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
+
+                                // 情况1：若新被观察者（Observable）返回1个Complete（） /  Error（）事件，则不重新订阅 & 发送原来的 Observable
+//                                return Observable.empty();
+                                // Observable.empty() = 发送Complete事件，但不会回调观察者的onComplete（）
+
+                                 return Observable.error(new Throwable("不再重新订阅事件"));
+                                // 返回Error事件 = 回调onError（）事件，并接收传过去的错误信息。
+
+                                // 情况2：若新被观察者（Observable）返回其余事件，则重新订阅 & 发送原来的 Observable
+//                                 return Observable.just(1);
+                                // 仅仅是作为1个触发重新订阅被观察者的通知，发送的是什么数据并不重要，只要不是Complete（） /  Error（）事件
+                            }
+                        });
+
+                    }
+                })
+
+                .subscribe(new Observer<Integer>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Integer value) {
+                        Log.d(TAG, "接收到了事件" + value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "对Error事件作出响应" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "对Complete事件作出响应");
+                    }
+
                 });
     }
 }
