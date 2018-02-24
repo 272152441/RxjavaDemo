@@ -8,6 +8,7 @@ import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -18,7 +19,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ServiceGenerator {
 
     private static final String TAG = "ServiceGenerator";
-    private static final String API_BASE_URL = "http://fy.iciba.com/ajax.php";
+    private static final String API_BASE_URL = "http://fy.iciba.com/";
     private static OkHttpClient okHttpClient;
 
     private static final int REFRESH_TOKEN_MAX_COUNT = 2;
@@ -60,7 +61,8 @@ public class ServiceGenerator {
     private static Retrofit.Builder builder =
             new Retrofit.Builder()
                     .baseUrl(API_BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create());
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create());
 
     private static Retrofit retrofit = builder.client(okHttpClient).build();
 

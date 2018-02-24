@@ -1,5 +1,6 @@
 package wordsdemo.zhangxiao.com.testrxjava;
 
+import android.content.Intent;
 import android.nfc.Tag;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -73,7 +74,11 @@ public class MainActivity extends AppCompatActivity {
 //        initRetryUntil();
 //        initRetryWhen();
 //        initRepeat();
-        initRepeatWhen();
+//        initRepeatWhen();
+        Intent intent = new Intent();
+        intent.setClass(this,MainRxjavaDemoActivity.class);
+        startActivity(intent);
+
     }
 
     private void initRxjava() {
