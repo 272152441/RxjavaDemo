@@ -106,4 +106,33 @@ public class MainRxjavaDemoActivity extends AppCompatActivity {
         });
     }
 
+    private int repeatCount = 0;
+
+    private void initRxDemoRepeatWhen() {
+
+        GetRequestInterface service = ServiceGenerator.createService(GetRequestInterface.class);
+        Observable<Translation> reqTranslation = service.getCall();
+
+        reqTranslation.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
+                        return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(Object o) throws Exception {
+
+                                if (repeatCount > 3) {
+                                    return Observable.error(new Throwable("轮询结束"));
+                                }
+
+                                return Observable.just(1).delay(2,TimeUnit.SECONDS);
+                            }
+                        });
+                    }
+                });
+
+
+    }
+
 }
