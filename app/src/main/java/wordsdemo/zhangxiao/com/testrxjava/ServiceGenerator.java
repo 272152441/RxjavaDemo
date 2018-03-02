@@ -49,7 +49,7 @@ public class ServiceGenerator {
 //            httpClient.addNetworkInterceptor(new StethoInterceptor());
             // 记录http请求日志拦截器
             HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-            httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
             httpClient.addInterceptor(httpLoggingInterceptor);
         }

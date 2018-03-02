@@ -76,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
 //        initRepeat();
 //        initRepeatWhen();
         Intent intent = new Intent();
-        intent.setClass(this,MainRxjavaDemoActivity.class);
+//        intent.setClass(this,MainRxjavaDemoActivity.class);
+        intent.setClass(this,JudegActivity.class);
         startActivity(intent);
 
     }
@@ -1283,4 +1284,5 @@ public class MainActivity extends AppCompatActivity {
 
                 });
     }
+
 }
